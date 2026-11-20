@@ -88,7 +88,7 @@ namespace EasyPeasyFirstPersonController
             {
                 SwitchState(factory.Crouching());
             }
-            else if (ctx.isInWater)
+            else if (ctx.ShouldStartSwimming())
             {
                 SwitchState(factory.Swimming());
             }

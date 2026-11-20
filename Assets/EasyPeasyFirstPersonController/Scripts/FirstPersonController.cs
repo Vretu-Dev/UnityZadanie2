@@ -88,6 +88,10 @@ namespace EasyPeasyFirstPersonController
         public float swimSprintSpeed = 6f;
         public float waterDrag = 2f;
         public LayerMask waterMask;
+        [Tooltip("Wysokość tafli wody (jeśli puste, pobierze automatycznie)")]
+        public float waterSurfaceY = 74.5f;
+        [Tooltip("Głębokość wody w metrach, od której gracz zaczyna płynąć zamiast brodzić po dnie")]
+        public float swimMinDepth = 1.0f;
         [HideInInspector] public bool isInWater;
         [HideInInspector] public float currentLedgeCooldown;
 
@@ -121,6 +125,12 @@ namespace EasyPeasyFirstPersonController
             standingCharacterControllerCenter = characterController.center;
             input = GetComponent<IInputManager>();
             states = new PlayerStateFactory(this);
+
+            GameObject waterObj = GameObject.Find("Water Surface");
+            if (waterObj != null)
+            {
+                waterSurfaceY = waterObj.transform.position.y;
+            }
 
             currentState = states.Grounded();
             currentState.EnterState();
@@ -254,7 +264,35 @@ namespace EasyPeasyFirstPersonController
             return false;
         }
 
+        public float WaterDepth => isInWater ? Mathf.Max(0f, waterSurfaceY - transform.position.y) : 0f;
+
+        public bool ShouldStartSwimming()
+        {
+            if (!isInWater) return false;
+            // Pływamy gdy tracimy grunt pod nogami LUB gdy woda sięga co najmniej do pasa/klatki piersiowej
+            return !isGrounded || WaterDepth >= swimMinDepth;
+        }
+
+        public bool ShouldStopSwimming()
+        {
+            if (!isInWater) return true;
+            // Wracamy do chodzenia po dnie, gdy stopy dotykają gruntu I woda jest już płytka (histereza)
+            return isGrounded && WaterDepth < Mathf.Max(0.3f, swimMinDepth - 0.25f);
+        }
+
         private void OnTriggerEnter(Collider other)
+        {
+            if (((1 << other.gameObject.layer) & waterMask) != 0)
+            {
+                isInWater = true;
+                if (other != null && other.bounds.max.y > 0)
+                {
+                    waterSurfaceY = other.bounds.max.y;
+                }
+            }
+        }
+
+        private void OnTriggerStay(Collider other)
         {
             if (((1 << other.gameObject.layer) & waterMask) != 0)
             {

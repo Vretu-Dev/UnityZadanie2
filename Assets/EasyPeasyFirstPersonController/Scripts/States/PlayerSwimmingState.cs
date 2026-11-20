@@ -26,7 +26,7 @@ namespace EasyPeasyFirstPersonController
 
         public override void CheckSwitchStates()
         {
-            if (!ctx.isInWater)
+            if (ctx.ShouldStopSwimming())
             {
                 if (ctx.isGrounded)
                 {

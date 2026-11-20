@@ -64,9 +64,11 @@ public class PlayerAudio : MonoBehaviour
         // 2. Obsługa dźwięków ruchu
         float speed = cc.velocity.magnitude;
 
-        if (fpc.isInWater)
+        bool isSwimming = fpc.CurrentState is PlayerSwimmingState;
+
+        if (isSwimming)
         {
-            // Pływanie
+            // Pływanie w głębokiej wodzie
             if (speed > 0.5f)
             {
                 stepTimer += Time.deltaTime;
@@ -85,7 +87,7 @@ public class PlayerAudio : MonoBehaviour
         }
         else if (fpc.isGrounded)
         {
-            // Chodzenie / bieg po lądzie
+            // Chodzenie / bieg po lądzie lub brodzenie w płytkiej wodzie
             if (speed > 0.5f)
             {
                 stepTimer += Time.deltaTime;
